@@ -92,8 +92,8 @@ npm start # Start node server at 9005 port
 ### Swagger Access Creds
 ```json
 {
-    user: "Developer"
-    password: "Developer@2025" 
+    "user": "Developer"
+    "password": "Developer@2025" 
 }
 ```
 
@@ -109,9 +109,9 @@ npm start # Start node server at 9005 port
 ### Example User Creds
 ```json
 {
-    email: "mike@gmail.com",
-    password: "Mike@123#",
-    role: "user"
+    "email": "mike@gmail.com",
+    "password": "Mike@123#",
+    "role": "user"
 }
 ```
 

@@ -44,13 +44,16 @@ import { Login, MakeAdmin } from '../controllers/guest.js';
  *                 result:
  *                   type: object
  *                   properties:
- *                     _id:
+ *                      _id:
  *                       type: string
  *                       example: 60d21b4667d0d8992e610c85
- *                     email:
+ *                      email:
  *                       type: string
  *                       example: user@example.com
- *                     name:
+ *                      name:
+ *                       type: string
+ *                       example: user
+ *                      role:
  *                       type: string
  *                       example: user
  *                 token:

@@ -4,7 +4,7 @@
 A role based product submission portal for users. User can add products with the basic details. Admins can view all the products and basic analytics data via dashboard.
 
 ## Frontend website - Hosted on VERCEL
-[Website](https://product-management-portal.vercel.app)
+[Website](https://product-management-portal-alpha.vercel.app)
 
 ## Backend web service - Hosted on RENDER
 

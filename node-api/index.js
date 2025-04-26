@@ -1,14 +1,31 @@
-const express = require("express");
+import express from "express";
 const app = express();
-const morgan = require("morgan");
-const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
-var cors = require("cors");
+import morgan from "morgan";
+import bodyParser from "body-parser";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+// Swagger 
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swagger.js";
+import swaggerAuth from "./middleware/swagger-auth.js";
 
-require("dotenv").config();
-require('./config/db')
+const swaggerCssOptions = {
+    customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui.min.css',
+    customJs: [
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.18.3/swagger-ui-bundle.js',
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.18.3/swagger-ui-standalone-preset.js'
+    ],
+};
 
-// Connect Database
+import connectDB from "./config/db.js";
+import guestRoutes from "./routes/guest.js";
+import productRoutes from "./routes/product.js";
+
+dotenv.config();
+
+// Connect Database 
+connectDB();
 mongoose.Promise = global.Promise;
 
 // Node Port
@@ -32,6 +49,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// Swagger Api Docs
+app.use("/api-docs", swaggerAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerCssOptions));
+
 // Base Route
 app.get("/", (req, res) => {
     console.log("success");
@@ -45,6 +65,11 @@ app.get("/success", (req, res) => {
     console.log("success");
     res.send(`Api running .... success`)
 });
+
+// API Routes
+app.use("/api", guestRoutes);
+
+app.use("/api/product", productRoutes);
 
 app.use(async (error, req, res, next) => {
     res.status(error.status || 500);

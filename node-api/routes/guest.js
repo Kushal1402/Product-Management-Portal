@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { Login, MakeAdmin } from '../controllers/guest.js';
+import { Login, Register, MakeAdmin } from '../controllers/guest.js';
 
 /**
  * @swagger
@@ -41,6 +41,116 @@ import { Login, MakeAdmin } from '../controllers/guest.js';
  *                 message:
  *                   type: string
  *                   example: Logged in successfully.
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                      _id:
+ *                       type: string
+ *                       example: 60d21b4667d0d8992e610c85
+ *                      email:
+ *                       type: string
+ *                       example: user@example.com
+ *                      name:
+ *                       type: string
+ *                       example: user
+ *                      role:
+ *                       type: string
+ *                       example: user
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       400:
+ *         description: User already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User already exists with this email
+ *       422:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Validation failed
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: email
+ *                       message:
+ *                         type: string
+ *                         example: The email field is required
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
+// @route   POST /api/login
+// @desc    Login with email and password
+// @access  Public
+router.post("/login", Login);
+
+/**
+ * @swagger
+ * /api/signup:
+ *   post:
+ *     summary: User registration
+ *     description: Registers a new user with username, email and password.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - username 
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 format: string
+ *                 description: User's username
+ *                 example: user123
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email address
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: User's password (min 6 characters)
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: Successful registration
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Register successfully.
  *                 result:
  *                   type: object
  *                   properties:
@@ -101,10 +211,10 @@ import { Login, MakeAdmin } from '../controllers/guest.js';
  *                   type: string
  *                   example: Internal server error
  */
-// @route   POST /api/login
-// @desc    Login with email and password
+// @route   POST /api/signup
+// @desc    Signup with username, email and password
 // @access  Public
-router.post("/login", Login);
+router.post("/signup", Register)
 
 /**
  * @swagger

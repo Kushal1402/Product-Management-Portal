@@ -9,6 +9,7 @@ import { ProtectedRoute, AuthRoute, AdminRoute, UserRoute } from "./guard";
 // Lazy load pages
 const Dashboard = lazy(() => import('../pages/dashboard'));
 const Login = lazy(() => import('../pages/login'));
+const Signup = lazy(() => import('../pages/signup'));
 const Error = lazy(() => import('../pages/error'));
 const Form = lazy(() => import('../pages/form'));
 
@@ -23,6 +24,11 @@ const AppRouter = () => {
                         <Route
                             path="/login"
                             element={<Login />}
+                        />
+
+                        <Route
+                            path="/signup"
+                            element={<Signup />}
                         />
                     </Route>
 

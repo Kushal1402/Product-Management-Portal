@@ -1,48 +1,71 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { loginUser } from "../actions/loginAction";
+import { signupUser } from "../actions/loginAction";
 
 import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
-const LoginForm = () => {
+const SignupForm = props => {
     const navigate = useNavigate();
+
+    const { signupUser } = props;
 
     const [loading, setLoading] = useState(false);
 
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const togglePasswordVisibility = () => {
         setShowPassword(prevState => !prevState);
     };
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(prevState => !prevState);
+    }
 
     const formik = useFormik({
         initialValues: {
+            username: '',
             email: '',
-            password: ''
+            password: '',
+            confirmPassword: ''
         },
         validationSchema: Yup.object().shape({
-            email: Yup.string()
+            username: Yup.string().trim()
+                .required('Username is required')
+                .min(3, 'Username must be at least 3 characters')
+                .max(20, 'Username must not exceed 20 characters'),
+            email: Yup.string().trim()
                 .email('Invalid email address')
                 .required('Email is required'),
-            password: Yup.string()
+            password: Yup.string().trim()
                 .min(6, 'Password must be at least 6 characters')
-                .required('Password is required'),
+                .required('Password is required')
+                .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/, 'Confirm Password must contain at least one uppercase letter, one lowercase letter, and one number excluding special characters')
+                .matches(/^[a-zA-Z0-9!@#$%^&*()_+={}\[\]:;"'<>,.?\/\\-]{6,}$/, 'Confirm Password must not contain special characters')
+                .matches(/^[^\s]+$/, 'Confirm Password must not contain spaces'),
+            confirmPassword: Yup.string().trim()
+                .required('Confirm Password is required')
+                .oneOf([Yup.ref('password'), null], 'Passwords must match')
+                .min(6, 'Confirm Password must be at least 6 characters')
+                .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/, 'Confirm Password must contain at least one uppercase letter, one lowercase letter, and one number excluding special characters')
+                .matches(/^[a-zA-Z0-9!@#$%^&*()_+={}\[\]:;"'<>,.?\/\\-]{6,}$/, 'Confirm Password must not contain special characters')
+                .matches(/^[^\s]+$/, 'Confirm Password must not contain spaces'),
         }),
         onSubmit: async (values, { resetForm }) => {
             // console.log('Login values:', values);
             setLoading(true);
 
             let apiData = {
+                username: values.username.trim(),
                 email: values.email.trim(),
                 password: values.password.trim()
             };
 
             // Api call
             try {
-                await loginUser(apiData);
+                await signupUser(apiData);
                 navigate('/');
                 setTimeout(() => {
                     resetForm();
@@ -59,10 +82,27 @@ const LoginForm = () => {
     return (
         <div className="flex justify-center items-center min-h-[70vh]">
             <div className="login-form bg-white/8 backdrop-blur-sm rounded-xl border shadow-md p-5 w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-1 text-start text-gray-800">Login to your account</h1>
-                <h6 className="text-sm text-gray-900 mb-4">Welcome back! Please enter your details below.</h6>
+                <h1 className="text-2xl font-bold mb-1 text-start text-gray-800">Create your account</h1>
+                <h6 className="text-sm text-gray-900 mb-4">Please enter your details below.</h6>
 
                 <form className="space-y-5" onSubmit={formik.handleSubmit} noValidate>
+                    <div>
+                        <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Username<span className="text-red-600">*</span></label>
+                        <input
+                            type="text"
+                            id="username"
+                            value={formik.values.username}
+                            placeholder="Enter your username"
+                            onChange={(e) => formik.handleChange(e)}
+                            onBlur={formik.handleBlur}
+                            className={`mt-1 block w-full px-3 py-2 border ${formik.touched.username && formik.errors.username ? 'border-red-600' : 'border-gray-300'} rounded-md shadow-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                            required
+                        />
+                        {formik.touched.username && formik.errors.username ? (
+                            <span className="text-red-600 text-sm mt-1">{formik.errors.username}</span>
+                        ) : null}
+                    </div>
+
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email<span className="text-red-600">*</span></label>
                         <input
@@ -90,7 +130,7 @@ const LoginForm = () => {
                                 placeholder="Enter your password"
                                 onChange={(e) => formik.handleChange(e)}
                                 onBlur={formik.handleBlur}
-                                autoComplete="current-password"
+                                autoComplete="new-password"
                                 className={`mt-1 block w-full px-3 py-2 border ${formik.touched.password && formik.errors.password ? 'border-red-600' : 'border-gray-300'} rounded-md shadow-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                                 required
                             />
@@ -106,6 +146,36 @@ const LoginForm = () => {
                             </span>
                             {formik.touched.password && formik.errors.password ? (
                                 <span className="text-red-600 text-sm mt-1">{formik.errors.password}</span>
+                            ) : null}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="relative">
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password<span className="text-red-600">*</span></label>
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                id="confirmPassword"
+                                value={formik.values.confirmPassword}
+                                placeholder="Confirm your password"
+                                onChange={(e) => formik.handleChange(e)}
+                                onBlur={formik.handleBlur}
+                                autoComplete="current-password"
+                                className={`mt-1 block w-full px-3 py-2 border ${formik.touched.confirmPassword && formik.errors.confirmPassword ? 'border-red-600' : 'border-gray-300'} rounded-md shadow-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                                required
+                            />
+                            <span
+                                className="absolute right-5 top-12 -translate-y-1/2 cursor-pointer"
+                                onClick={toggleConfirmPasswordVisibility}
+                            >
+                                {showConfirmPassword ? (
+                                    <AiOutlineEye className="text-gray-500" size={20} />
+                                ) : (
+                                    <AiOutlineEyeInvisible className="text-gray-500" size={20} />
+                                )}
+                            </span>
+                            {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
+                                <span className="text-red-600 text-sm mt-1">{formik.errors.confirmPassword}</span>
                             ) : null}
                         </div>
                     </div>
@@ -127,7 +197,7 @@ const LoginForm = () => {
                                 </span>
                             ) : (
                                 <>
-                                    <span>Login</span>
+                                    <span>Create Account</span>
                                     <svg className="hidden sm:inline w-4 h-4 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                     </svg>
@@ -139,12 +209,12 @@ const LoginForm = () => {
 
                 <div className="mt-4 text-sm text-center border-t border-gray-300 pt-4">
                     <p className="text-gray-600">
-                        Don't have an account? <a href="/signup" className="text-blue-600 hover:underline">Register Now</a>
+                        Already have an account? <a href="/login" className="text-blue-600 hover:underline">Login</a>
                     </p>
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default LoginForm;
+export default SignupForm

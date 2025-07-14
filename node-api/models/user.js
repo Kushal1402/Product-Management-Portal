@@ -13,12 +13,24 @@ const UserSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: true,
+            required: function () {
+                return this.registerMethod === 0; // Only required for local signup
+            },
         },
         role: {
             type: String,
             enum: ["user", "admin"],
             default: "user",
+        },
+        registerMethod: {
+            type: Number,
+            enum: [0, 1], // 0 for local signup, 1 for Google signup
+            default: 0,
+        },
+        googleId: {
+            type: String,
+            sparse: true,
+            unique: true,
         },
     },
     {

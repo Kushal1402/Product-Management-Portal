@@ -32,13 +32,17 @@ export const Login = async (req, res, next) => {
         let user = await UserModal.findOne({ email });
         let message = "Logged in successfully.";
 
-        if (user) {
+        if (user && user.registerMethod === 0 && (user !== null || user !== undefined)) {
             // User exists, verify password
             const isPasswordCorrect = await bycrypt.compare(password, user.password);
 
             if (!isPasswordCorrect) {
                 return res.status(400).json({ message: "Invalid credentials" });
             }
+        } else if (!user && (user == null || user == undefined)) {
+            return res.status(400).json({ message: "User does not exist with this email" });
+        } else if (user && user.registerMethod !== 0 ) {
+            return res.status(400).json({ message: "User already exists with this email but has not registered with credentials yet." });
         }
         // else {
         //     // User does not exist, create a new user
@@ -110,7 +114,7 @@ export const Register = async (req, res, next) => {
         const { username, email, password } = req.body;
 
         // Check if the user exists
-        let user = await UserModal.findOne({ email });
+        let user = await UserModal.findOne({ email, registerMethod: 0 });
         let message = "";
 
         // Throw error if user already exists
@@ -220,6 +224,87 @@ export const MakeAdmin = async (req, res, next) => {
         });
     } catch (error) {
         console.error("Error in make admin : ", error);
+        next(error);
+    }
+};
+
+export const GoogleLogin = async (req, res, next) => {
+    try {
+        const objValidation = new niv.Validator(req.body, {
+            idToken: "required|string",
+        });
+        const matched = await objValidation.check();
+        if (!matched) {
+            const errorMessages = [];
+            for (const field in objValidation.errors) {
+                errorMessages.push({
+                    field: field,
+                    message: objValidation.errors[field].message
+                });
+            }
+            return res.status(422).json({
+                message: "Validation failed",
+                errors: errorMessages
+            });
+        };
+
+        const { idToken, name, email } = req.body;
+        // console.log("Google Login Request Body:", req.body);
+
+        // Check if user already exists with this email
+        let user = await UserModal.findOne({ email: email, registerMethod: 1 });
+        // console.log("User found:", user);
+
+        let message = "Logged in successfully with Google.";
+
+        if (!user) {
+            // Create a new user if not exists
+            user = new UserModal({
+                email: email,
+                name: name,
+                googleId: idToken,
+                registerMethod: 1, // Google signup
+            });
+
+            await user.save();
+            message = "Your profile has been created successfully with Google.";
+        } else if (user) {
+            // User exists, update Google ID if not already set
+            if (!user.googleId) {
+                user.googleId = idToken;
+                await user.save();
+                message = "Your Google account has been linked successfully.";
+            }
+        } else if (user && user.registerMethod !== 1) {
+            return res.status(400).json({ message: "User already exists with this email but has not linked Google account yet." });     
+        }
+
+        // Generate token for authentication
+        const token = jwt.sign(
+            {
+                email: user.email,
+                id: user._id
+            },
+            process.env.JWT_KEY,
+            {
+                expiresIn: "1h"
+            }
+        );
+
+        const userToReturn = {
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+        };
+
+        res.status(200).json({
+            message,
+            result: userToReturn,
+            token
+        });
+    } catch (error) {
+        console.error("Error in Google login: ", error);
         next(error);
     }
 };

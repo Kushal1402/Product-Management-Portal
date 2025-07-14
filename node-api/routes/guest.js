@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { Login, Register, MakeAdmin } from '../controllers/guest.js';
+import { Login, Register, MakeAdmin, GoogleLogin } from '../controllers/guest.js';
 
 /**
  * @swagger
@@ -320,5 +320,114 @@ router.post("/signup", Register)
 // @desc    Add a new admin user
 // @access  Public
 router.post("/add-admin", MakeAdmin);
+
+/**
+ * @swagger
+ * /api/google-login:
+ *   post:
+ *     summary: User login or registration with Google
+ *     description: Authenticates user with Google ID token. Creates a new account if user doesn't exist.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - idToken
+ *               - email
+ *               - name
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 description: Google ID token obtained from client-side authentication
+ *                 example: eyJhbGciOiJSUzI1NiIsImtpZCI6IjFiZjhhODRkM2Q...
+ *               name:
+ *                 type: string
+ *                 format: string
+ *                 description: User's username
+ *                 example: user123
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email address
+ *                 example: user@example.com              
+ *     responses:
+ *       200:
+ *         description: Successful Google login or registration
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Logged in successfully with Google.
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                      _id:
+ *                       type: string
+ *                       example: 60d21b4667d0d8992e610c85
+ *                      email:
+ *                       type: string
+ *                       example: user@gmail.com
+ *                      name:
+ *                       type: string
+ *                       example: John Doe
+ *                      role:
+ *                       type: string
+ *                       example: user
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       401:
+ *         description: Invalid Google token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid Google token
+ *       422:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Validation failed
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: idToken
+ *                       message:
+ *                         type: string
+ *                         example: The idToken field is required
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
+// @route   POST /api/google-login
+// @desc    Login/Register with Google
+// @access  Public
+router.post("/google-login", GoogleLogin);
 
 export default router;

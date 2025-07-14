@@ -34,3 +34,20 @@ export const signupUser = async (body) => {
         throw error;
     }
 }
+
+export const googleSignup = async (body) => {
+    try {
+        const response = await axiosClient.post('/api/google-login', body);
+
+        const { token } = response.data;
+        localStorage.setItem('product_access_token', token);
+        localStorage.setItem('user', JSON.stringify(response.data.result));
+        
+        showSuccessToast(response.data.message || 'Logged in successfully with Google');
+
+        return response.data;
+    } catch (error) {
+        handleApiErrorToast(error);
+        throw error;
+    }
+}
